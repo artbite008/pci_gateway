@@ -1,0 +1,76 @@
+rootArtifactId: PCI-GATEWAY
+spring:
+  application:
+    name: ${rootArtifactId}
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    config:
+      fail-fast: false
+      discovery:
+        enabled: false
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedHeaders: "*"
+            allowedMethods: "*"
+      default-filters:
+        - DedupeResponseHeader=Vary Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: http://middleware.siupay.com:8080/eureka/
+#      defaultZone: http://localhost:8080/eureka/
+    registry-fetch-interval-seconds: 10
+
+server:
+  port: 30000
+  tomcat:
+    max-threads: 800
+    min-spare-threads: 200
+    accesslog:
+      enabled: true
+      rotate: true
+      directory: ${logging.path}
+# prometheus is not used at pci
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: info,health,loggers,prometheus,service-registry
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - "info"
+          - "health"
+          - "loggers"
+          - "prometheus"
+          - "service-registry"
+
+logging:
+  path: logs/${spring.application.name}
+  file:
+    path: ${logging.path}
+  level:
+    com.siupay: INFO
+    org.springframework.cloud.gateway.filter.GatewayMetricsFilter: TRACE
+    org.springframework.http.server.reactive: INFO
+    org.springframework.web.reactive: INFO
+    reactor.ipc.netty: INFO
+    reactor.netty: INFO
+
+app:
+  id: ${spring.application.name}
+
+limiter:
+  rate: 200 # per second
+  switch: ON # ON/OFF
+
